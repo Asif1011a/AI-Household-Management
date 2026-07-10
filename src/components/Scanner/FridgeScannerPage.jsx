@@ -94,7 +94,7 @@ export default function FridgeScannerPage({ onRefresh, addToast }) {
       <div className="tab-bar mb-20">
         <button className={`tab-btn ${mode === 'scan' || mode === 'choose' ? 'active' : ''}`}
           onClick={() => { setMode('scan'); setFreshnessResult(null); }}>
-          📸 Fridge Scanner
+          📸 Scanner
         </button>
         <button className={`tab-btn ${mode === 'freshness' ? 'active' : ''}`}
           onClick={() => { setMode('freshness'); setScannedItems([]); }}>

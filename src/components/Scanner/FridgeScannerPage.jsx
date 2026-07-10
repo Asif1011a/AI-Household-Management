@@ -289,8 +289,8 @@ export default function FridgeScannerPage({ onRefresh, addToast }) {
           {freshnessResult && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {Array.isArray(freshnessResult) 
-                ? freshnessResult.map((res, i) => <FreshnessResult key={i} result={res} />) 
-                : <FreshnessResult result={freshnessResult} />
+                ? freshnessResult.map((res, i) => <FreshnessResult key={i} result={res} imagePreview={imagePreview} />) 
+                : <FreshnessResult result={freshnessResult} imagePreview={imagePreview} />
               }
             </div>
           )}
@@ -358,7 +358,7 @@ function ScannedItemRow({ item, emoji, onToggle }) {
   );
 }
 
-function FreshnessResult({ result }) {
+function FreshnessResult({ result, imagePreview }) {
   const levelConfig = {
     FRESH: { color: 'var(--fresh)', glow: 'var(--fresh-glow)', emoji: '✅', label: 'Fresh', ringColor: '#4ade80' },
     SEMI_FRESH: { color: 'var(--warning)', glow: 'var(--warning-glow)', emoji: '⚠️', label: 'Semi-Fresh', ringColor: '#fbbf24' },
@@ -383,9 +383,36 @@ function FreshnessResult({ result }) {
   return (
     <div className="glass-card" style={{ padding: 24, borderColor: cfg.color + '40' }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 4, color: 'var(--text-100)' }}>
+        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 16, color: 'var(--text-100)' }}>
           {result.foodName}
         </div>
+
+        {/* Bounding Box Thumbnail Context */}
+        {imagePreview && result.boundingBox && Array.isArray(result.boundingBox) && result.boundingBox.length === 4 && (
+          <div style={{ 
+            position: 'relative', 
+            width: '100%', 
+            maxWidth: '300px',
+            margin: '0 auto 24px', 
+            borderRadius: 'var(--r-md)', 
+            overflow: 'hidden',
+            border: `1px solid ${cfg.color}40`,
+            background: 'var(--bg-void)'
+          }}>
+            <img src={imagePreview} alt="Context" style={{ width: '100%', display: 'block', opacity: 0.7 }} />
+            <div style={{
+              position: 'absolute',
+              top: `${result.boundingBox[0] / 10}%`,
+              left: `${result.boundingBox[1] / 10}%`,
+              height: `${(result.boundingBox[2] - result.boundingBox[0]) / 10}%`,
+              width: `${(result.boundingBox[3] - result.boundingBox[1]) / 10}%`,
+              border: `2px solid ${cfg.color}`,
+              boxShadow: `0 0 15px ${cfg.color}60, inset 0 0 15px ${cfg.color}60`,
+              borderRadius: '4px',
+              backgroundColor: `${cfg.color}20`
+            }} />
+          </div>
+        )}
 
         {/* Freshness Ring */}
         <div className="freshness-ring-wrap" style={{ marginBottom: 16 }}>

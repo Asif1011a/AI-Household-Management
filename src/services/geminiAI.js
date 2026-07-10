@@ -155,9 +155,15 @@ Return a JSON array with an object for EACH item found:
     ],
     "action": "DISCARD",
     "estimatedDaysLeft": 0,
-    "tips": "Do not eat. The mold indicates severe spoilage. Recommended: Compost this or use as garden fertilizer."
+    "tips": "Do not eat. The mold indicates severe spoilage. Recommended: Compost this or use as garden fertilizer.",
+    "boundingBox": [ymin, xmin, ymax, xmax]
   }
 ]
+
+IMPORTANT FOR BOUNDING BOX:
+- \`boundingBox\` must be an array of 4 integers: [ymin, xmin, ymax, xmax] scaled strictly from 0 to 1000.
+- ymin is top, xmin is left, ymax is bottom, xmax is right. 
+- It MUST bound the exact food item you are analyzing in this object.
 
 freshnessLevel must be one of: FRESH, SEMI_FRESH, SPOILED
 action must be one of: SAFE, USE_NOW, USE_TODAY, DISCARD, REPURPOSE

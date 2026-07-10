@@ -28,10 +28,7 @@ export default function FridgeScannerPage({ onRefresh, addToast }) {
 
   const handleScanFridge = async () => {
     if (!imageFile) return;
-    if (!settings.geminiApiKey) {
-      setError('Add your Gemini API key in Settings first!');
-      return;
-    }
+    
     setLoading(true);
     setError('');
     try {
@@ -45,10 +42,6 @@ export default function FridgeScannerPage({ onRefresh, addToast }) {
 
   const handleCheckFreshness = async () => {
     if (!imageFile) return;
-    if (!settings.geminiApiKey) {
-      setError('Add your Gemini API key in Settings first!');
-      return;
-    }
     setLoading(true);
     setError('');
     try {

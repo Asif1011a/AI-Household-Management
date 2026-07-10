@@ -19,10 +19,6 @@ export default function RecipesPage({ inventory }) {
   const getCategoryEmoji = (cat) => CATEGORIES.find(c => c.id === cat)?.emoji || '🍽️';
 
   const handleGenerate = async () => {
-    if (!settings.geminiApiKey) {
-      setError('Please add your Gemini API key in Settings to use AI recipes.');
-      return;
-    }
     if (activeItems.length === 0) {
       setError('Add some items to your pantry first!');
       return;

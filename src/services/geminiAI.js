@@ -12,7 +12,11 @@ function getModelUrl(model) {
   return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 }
 
-function headers(apiKey) {
+function headers() {
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'PASTE_YOUR_API_KEY_HERE') {
+    throw new Error('Gemini API Key is missing. Please paste it in the .env file.');
+  }
   return { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey };
 }
 
@@ -42,7 +46,7 @@ async function callGemini(apiKey, parts) {
     try {
       const res = await fetch(getModelUrl(model), {
         method: 'POST',
-        headers: headers(apiKey),
+        headers: headers(),
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: { 

@@ -48,10 +48,6 @@ export default function AddItemPage({ onRefresh, addToast }) {
   const handleAIParse = async (text) => {
     const inputText = text || bulkText;
     if (!inputText.trim()) return;
-    if (!settings.geminiApiKey) {
-      setAiError('Add your Gemini API key in Settings first.');
-      return;
-    }
     setAiLoading(true);
     setAiError('');
     setParsedItems([]);

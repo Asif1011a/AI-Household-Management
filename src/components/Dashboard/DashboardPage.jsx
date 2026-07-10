@@ -46,8 +46,8 @@ export default function DashboardPage({ inventory, onRefresh }) {
               {greeting}
             </div>
             <h1 style={{
-              fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800,
-              lineHeight: 1.2, color: 'var(--text-100)',
+              fontFamily: "'Space Grotesk', sans-serif", fontSize: 22, fontWeight: 700,
+              lineHeight: 1.2, color: 'var(--text-100)', letterSpacing: '-0.02em'
             }}>
               {stats.urgent.length > 0 
                 ? `You have ${stats.urgent.length} items needing attention today.`
@@ -103,7 +103,7 @@ export default function DashboardPage({ inventory, onRefresh }) {
       </div>
 
       {/* AI Features */}
-      <div className="section-label" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: 'var(--green-400)', marginBottom: 16 }}>
+      <div className="section-label" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 800, color: 'var(--green-400)', marginBottom: 16 }}>
         Intelligent Tools
       </div>
 
@@ -144,7 +144,7 @@ export default function DashboardPage({ inventory, onRefresh }) {
       {/* Use First List */}
       {(stats.urgent.length > 0 || stats.warning.length > 0) && (
         <>
-          <div className="section-label" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: 'var(--text-100)', marginBottom: 16 }}>
+          <div className="section-label" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 800, color: 'var(--text-100)', marginBottom: 16 }}>
             Use First
           </div>
           <div className="glass-card" style={{ padding: '8px 0', marginBottom: 32 }}>
@@ -189,7 +189,7 @@ export default function DashboardPage({ inventory, onRefresh }) {
       )}
 
       {/* Gamification / Eco-Impact */}
-      <div className="section-label" style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, color: 'var(--text-100)', marginBottom: 16 }}>
+      <div className="section-label" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 800, color: 'var(--text-100)', marginBottom: 16 }}>
         Environmental Impact
       </div>
       <div className="glass-card" style={{ padding: 24, marginBottom: 32 }}>
@@ -205,7 +205,7 @@ export default function DashboardPage({ inventory, onRefresh }) {
             {savedPct >= 80 ? '🌱' : savedPct >= 60 ? '🌿' : '🪴'}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--text-100)', marginBottom: 4 }}>
+            <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--text-100)', marginBottom: 4 }}>
               {savedPct >= 80 ? 'Earth Guardian' : savedPct >= 60 ? 'Eco Warrior' : 'Seedling'}
             </div>
             <div className="progress-track" style={{ height: 6, background: 'rgba(255,255,255,0.1)' }}>
@@ -225,17 +225,17 @@ export default function DashboardPage({ inventory, onRefresh }) {
 
         <div style={{ display: 'flex', gap: 16, borderTop: '1px solid var(--glass-border)', paddingTop: 20 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--cyan-400)', fontFamily: "'Syne', sans-serif", textShadow: '0 0 10px var(--cyan-glow)' }}>
+            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--cyan-400)', fontFamily: "'Space Grotesk', sans-serif", textShadow: '0 0 10px var(--cyan-glow)' }}>
               {Math.round(stats.saved * 2.5)} kg
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-400)' }}>CO₂ Prevented</div>
+            <div style={{ fontSize: 12, color: 'var(--text-400)', fontWeight: 600 }}>CO₂ Prevented</div>
           </div>
           <div style={{ width: 1, background: 'var(--glass-border)' }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--green-400)', fontFamily: "'Syne', sans-serif", textShadow: '0 0 10px var(--green-glow)' }}>
+            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--green-400)', fontFamily: "'Space Grotesk', sans-serif", textShadow: '0 0 10px var(--green-glow)' }}>
               ₹{stats.saved * 45}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-400)' }}>Money Saved</div>
+            <div style={{ fontSize: 12, color: 'var(--text-400)', fontWeight: 600 }}>Money Saved</div>
           </div>
         </div>
       </div>
@@ -259,7 +259,7 @@ export default function DashboardPage({ inventory, onRefresh }) {
               onClick={() => navigate('/pantry')}
             >
               <div style={{ fontSize: 24, marginBottom: 6 }}>{loc.emoji}</div>
-              <div style={{ fontFamily: "'Space Grotesk'", fontWeight: 800, fontSize: 20, color: 'var(--green-400)' }}>
+              <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 20, color: 'var(--green-400)' }}>
                 {locItems.length}
               </div>
               <div style={{ fontSize: 10, color: 'var(--text-500)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>

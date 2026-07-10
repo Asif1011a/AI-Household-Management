@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Leaf, Activity, ChevronRight, Apple, Zap, User } from 'lucide-react';
 import { loadSettings, saveSettings } from '../../services/storage';
-import { getHealthInsights } from '../../services/geminiAI';
+import { analyzeHealthImpact } from '../../services/geminiAI';
 import Header from '../Layout/Header';
 
 export default function HealthInsightsPage({ inventory, onRefresh }) {
@@ -26,7 +26,7 @@ export default function HealthInsightsPage({ inventory, onRefresh }) {
     setLoading(true);
     setError('');
     try {
-      const result = await getHealthInsights(settings.geminiApiKey, active, settings.healthProfile);
+      const result = await analyzeHealthImpact(settings.geminiApiKey, active, settings.healthProfile);
       setInsights(result);
     } catch (err) {
       setError('Failed to generate insights: ' + err.message);
@@ -136,35 +136,48 @@ export default function HealthInsightsPage({ inventory, onRefresh }) {
             <div className="glass-card" style={{ padding: 24, marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                 <Apple size={24} color="var(--green-400)" />
-                <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-100)', margin: 0 }}>Nutrition Overview</h4>
+                <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-100)', margin: 0 }}>General Advice</h4>
               </div>
-              <p style={{ fontSize: 14, color: 'var(--text-300)', lineHeight: 1.6 }}>{insights.overview}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-300)', lineHeight: 1.6 }}>{insights.generalAdvice}</p>
             </div>
 
             <div className="glass-card" style={{ padding: 24, marginBottom: 16 }}>
-              <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-100)', marginBottom: 16 }}>Recommendations</h4>
+              <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-100)', marginBottom: 16 }}>Shopping Recommendations</h4>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {insights.recommendations.map((rec, i) => (
+                {insights.shoppingRecommendations?.map((rec, i) => (
                   <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--green-400)', fontSize: 12, fontWeight: 700 }}>
                       {i + 1}
                     </div>
-                    <span style={{ fontSize: 14, color: 'var(--text-300)', lineHeight: 1.5, paddingTop: 2 }}>{rec}</span>
+                    <div style={{ paddingTop: 2 }}>
+                      <span style={{ fontSize: 14, color: 'var(--text-100)', fontWeight: 700, display: 'block' }}>{rec.itemName}</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-400)' }}>{rec.benefit}</span>
+                    </div>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="glass-card" style={{ padding: 24, background: 'rgba(244,63,94,0.02)' }}>
-              <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--urgent)', marginBottom: 16 }}>Warnings & Deficiencies</h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {insights.warnings.map((warning, i) => (
-                  <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
-                    <span style={{ fontSize: 14, color: 'var(--text-300)', lineHeight: 1.5, paddingTop: 2 }}>{warning}</span>
-                  </li>
+            <div className="glass-card" style={{ padding: 24 }}>
+              <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-100)', marginBottom: 16 }}>Pantry Evaluation</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {insights.pantryFlags?.map((flag, i) => (
+                  <div key={i} style={{ 
+                    display: 'flex', gap: 12, alignItems: 'flex-start',
+                    background: flag.status === 'AVOID' ? 'rgba(244,63,94,0.05)' : 'rgba(16,185,129,0.05)',
+                    border: `1px solid ${flag.status === 'AVOID' ? 'rgba(244,63,94,0.2)' : 'rgba(16,185,129,0.2)'}`,
+                    padding: 16, borderRadius: 'var(--r-md)'
+                  }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{flag.status === 'AVOID' ? '⚠️' : '✅'}</span>
+                    <div>
+                      <span style={{ fontSize: 14, color: flag.status === 'AVOID' ? 'var(--urgent)' : 'var(--green-400)', fontWeight: 700, display: 'block', marginBottom: 4 }}>
+                        {flag.itemName}
+                      </span>
+                      <span style={{ fontSize: 13, color: 'var(--text-300)', lineHeight: 1.5 }}>{flag.reason}</span>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         )}

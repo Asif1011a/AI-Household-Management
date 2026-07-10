@@ -13,7 +13,6 @@ import HealthInsightsPage from './components/Health/HealthInsightsPage';
 import { ToastContainer, useToast } from './components/Toast';
 import { loadInventory } from './services/storage';
 import { playPopSound } from './utils/audio';
-import Beams from './components/Beams/Beams';
 import LoginPage from './components/Auth/LoginPage';
 import { getCurrentUser } from './services/storage';
 
@@ -59,8 +58,8 @@ function AppShell() {
     return (
       <div className="splash-screen">
         <div className="splash-logo-container">
-          <Leaf size={48} color="var(--green-400)" className="splash-icon" />
-          <h1 className="splash-title">Green<span style={{ color: 'var(--green-400)' }}>Bite</span></h1>
+          <Leaf size={48} color="var(--primary-400)" className="splash-icon" />
+          <h1 className="splash-title">Green<span style={{ color: 'var(--primary-400)' }}>Bite</span></h1>
         </div>
       </div>
     );
@@ -68,21 +67,8 @@ function AppShell() {
 
   return (
     <div className="app-shell fade-in">
-      {/* AI Beams Background */}
       <div className="aurora-bg">
         <div className="aurora-grid" style={{ zIndex: 1 }} />
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.8, zIndex: 0 }}>
-          <Beams
-            beamWidth={3}
-            beamHeight={20}
-            beamNumber={15}
-            lightColor="#10b981"
-            speed={1.5}
-            noiseIntensity={2.0}
-            scale={0.15}
-            rotation={15}
-          />
-        </div>
       </div>
 
       {!isAuthenticated ? (

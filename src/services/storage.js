@@ -1,14 +1,53 @@
 import { getStatus, getPriorityScore } from '../utils/dateUtils';
 
-const STORAGE_KEY = 'greenbite_inventory';
-const ACTIVITY_KEY = 'greenbite_activity';
-const SETTINGS_KEY = 'greenbite_settings';
+const BASE_STORAGE_KEY = 'greenbite_inventory';
+const BASE_ACTIVITY_KEY = 'greenbite_activity';
+const BASE_SETTINGS_KEY = 'greenbite_settings';
+const USERS_KEY = 'greenbite_users';
+const CURRENT_USER_KEY = 'greenbite_current_user';
+
+export function getCurrentUser() {
+  return localStorage.getItem(CURRENT_USER_KEY);
+}
+
+export function loginUser(userId) {
+  localStorage.setItem(CURRENT_USER_KEY, userId);
+}
+
+export function logoutUser() {
+  localStorage.removeItem(CURRENT_USER_KEY);
+}
+
+export function getUsers() {
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function createUser(name) {
+  const users = getUsers();
+  const newUser = {
+    id: 'usr_' + Date.now().toString(36),
+    name: name,
+    createdAt: new Date().toISOString()
+  };
+  users.push(newUser);
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  return newUser;
+}
+
+const getStorageKey = () => `${BASE_STORAGE_KEY}_${getCurrentUser() || 'default'}`;
+const getActivityKey = () => `${BASE_ACTIVITY_KEY}_${getCurrentUser() || 'default'}`;
+const getSettingsKey = () => `${BASE_SETTINGS_KEY}_${getCurrentUser() || 'default'}`;
 
 // ── Inventory ──────────────────────────────────────────────────────────────
 
 export function loadInventory() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getStorageKey());
     const items = raw ? JSON.parse(raw) : [];
     // Recalculate status and priority on every load
     return items.map(item => ({
@@ -22,7 +61,7 @@ export function loadInventory() {
 }
 
 export function saveInventory(items) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  localStorage.setItem(getStorageKey(), JSON.stringify(items));
 }
 
 export function addItem(item) {
@@ -114,13 +153,13 @@ export function logActivity(action, item) {
     });
     // Keep last 500 entries
     const trimmed = logs.slice(-500);
-    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(trimmed));
+    localStorage.setItem(getActivityKey(), JSON.stringify(trimmed));
   } catch {}
 }
 
 export function getActivityLog() {
   try {
-    const raw = localStorage.getItem(ACTIVITY_KEY);
+    const raw = localStorage.getItem(getActivityKey());
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -131,7 +170,7 @@ export function getActivityLog() {
 
 export function loadSettings() {
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
+    const raw = localStorage.getItem(getSettingsKey());
     return raw ? JSON.parse(raw) : getDefaultSettings();
   } catch {
     return getDefaultSettings();
@@ -139,7 +178,7 @@ export function loadSettings() {
 }
 
 export function saveSettings(settings) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  localStorage.setItem(getSettingsKey(), JSON.stringify(settings));
 }
 
 function getDefaultSettings() {
@@ -159,6 +198,7 @@ export function generateId() {
 }
 
 export function clearAll() {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(ACTIVITY_KEY);
+  localStorage.removeItem(getStorageKey());
+  localStorage.removeItem(getActivityKey());
+  localStorage.removeItem(getSettingsKey());
 }

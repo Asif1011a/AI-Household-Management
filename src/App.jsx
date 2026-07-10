@@ -14,12 +14,15 @@ import { ToastContainer, useToast } from './components/Toast';
 import { loadInventory } from './services/storage';
 import { playPopSound } from './utils/audio';
 import Beams from './components/Beams/Beams';
+import LoginPage from './components/Auth/LoginPage';
+import { getCurrentUser } from './services/storage';
 
 import { Leaf } from 'lucide-react';
 
 function AppShell() {
   const [inventory, setInventory] = useState(() => loadInventory());
   const [showSplash, setShowSplash] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!getCurrentUser());
   const { toasts, addToast } = useToast();
   const location = useLocation();
 
@@ -42,6 +45,11 @@ function AppShell() {
   }, []);
 
   const refresh = useCallback(() => {
+    setInventory(loadInventory());
+  }, []);
+
+  const handleLogin = useCallback(() => {
+    setIsAuthenticated(true);
     setInventory(loadInventory());
   }, []);
 
@@ -77,8 +85,12 @@ function AppShell() {
         </div>
       </div>
 
-      {/* Top Bar */}
-      <TopBar urgentCount={urgentCount} />
+      {!isAuthenticated ? (
+        <LoginPage onLogin={handleLogin} />
+      ) : (
+        <>
+          {/* Top Bar */}
+          <TopBar urgentCount={urgentCount} />
 
       {/* Page Content */}
       <div className="page-wrapper">
@@ -96,8 +108,10 @@ function AppShell() {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav urgentCount={urgentCount} />
+          {/* Bottom Navigation */}
+          <BottomNav urgentCount={urgentCount} />
+        </>
+      )}
 
       {/* Toasts */}
       <ToastContainer toasts={toasts} />

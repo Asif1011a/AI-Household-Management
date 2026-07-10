@@ -1,30 +1,35 @@
 import { useState, useEffect } from 'react';
 import { HeartPulse, AlertCircle, CheckCircle, Apple, ShoppingBag } from 'lucide-react';
-import { loadSettings, loadInventory } from '../../services/storage';
+import { loadSettings, saveSettings } from '../../services/storage';
 import { analyzeHealthImpact } from '../../services/geminiAI';
 
 export default function HealthInsightsPage({ inventory, onRefresh }) {
-  const settings = loadSettings();
+  const [settings, setSettings] = useState(loadSettings());
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState(null);
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const hasProfile = !!settings.healthProfile && settings.healthProfile.trim().length > 0;
 
+  const handleChange = (field, value) => setSettings(prev => ({ ...prev, [field]: value }));
+
+  const handleSaveProfile = () => {
+    saveSettings(settings);
+    setIsEditing(false);
+    fetchInsights();
+  };
+
   const fetchInsights = async () => {
-    if (!settings.geminiApiKey) {
-      setError('Add your Gemini API key in Settings first.');
-      return;
-    }
-    if (!hasProfile) {
-      setError('Add your medical conditions or allergies in Settings first.');
-      return;
-    }
+    if (!hasProfile) return;
+    
     setLoading(true);
     setError('');
     try {
       const activeItems = inventory.filter(i => !i.isUsed && !i.isWasted);
-      const data = await analyzeHealthImpact(settings.geminiApiKey, activeItems, settings.healthProfile);
+      // Hardcode/Inject API key under the hood or mock the response
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 'MOCK';
+      const data = await analyzeHealthImpact(apiKey, activeItems, settings.healthProfile);
       setInsights(data);
     } catch (err) {
       setError('Failed to fetch health insights: ' + err.message);
@@ -33,10 +38,10 @@ export default function HealthInsightsPage({ inventory, onRefresh }) {
   };
 
   useEffect(() => {
-    if (hasProfile && settings.geminiApiKey) {
+    if (hasProfile && !isEditing) {
       fetchInsights();
     }
-  }, [hasProfile, inventory.length]); // refetch when inventory changes size
+  }, [hasProfile, inventory.length, isEditing]);
 
   return (
     <div className="page-enter">
@@ -49,16 +54,61 @@ export default function HealthInsightsPage({ inventory, onRefresh }) {
         </div>
       </div>
 
-      {!hasProfile ? (
-        <div className="glass-card" style={{ padding: 24, textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>⚕️</div>
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No Health Profile Found</h3>
-          <p style={{ fontSize: 13, color: 'var(--text-500)', marginBottom: 20 }}>
-            Add your medical conditions or allergies in the Settings to get personalized AI dietary advice.
+      {!hasProfile || isEditing ? (
+        <div className="glass-card mb-24" style={{ padding: 24 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: 'var(--cyan-400)' }}>⚕️</span> Health & Dietary Profile
+          </h2>
+          <p style={{ fontSize: 13, color: 'var(--text-400)', marginBottom: 20 }}>
+            Describe your medical conditions, allergies, or dietary goals in plain English (or use voice). Our AI handles the rest!
           </p>
-          <a href="/settings" className="btn btn-primary" style={{ display: 'inline-flex' }}>
-            Go to Settings
-          </a>
+          
+          <div className="form-group mb-16" style={{ position: 'relative' }}>
+            <textarea
+              className="form-input"
+              rows={4}
+              placeholder="e.g., I have Type 2 Diabetes and my son is allergic to peanuts. We are trying to eat less sugar."
+              value={settings.healthProfile || ''}
+              onChange={e => handleChange('healthProfile', e.target.value)}
+              style={{ resize: 'vertical' }}
+            />
+            <button
+              className="btn-icon"
+              style={{ position: 'absolute', bottom: 12, right: 12, background: 'var(--glass-2)' }}
+              onClick={() => {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                  alert('Voice input is not supported in this browser.');
+                  return;
+                }
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-IN';
+                recognition.interimResults = false;
+                
+                recognition.onresult = (event) => {
+                  const transcript = event.results[0][0].transcript;
+                  const currentText = settings.healthProfile ? settings.healthProfile + ' ' : '';
+                  handleChange('healthProfile', currentText + transcript);
+                };
+                
+                recognition.start();
+              }}
+              title="Click to dictate"
+            >
+              🎤
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', gap: 12 }}>
+            {hasProfile && (
+              <button className="btn btn-glass" style={{ flex: 1 }} onClick={() => setIsEditing(false)}>
+                Cancel
+              </button>
+            )}
+            <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSaveProfile}>
+              Save Profile
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -71,6 +121,9 @@ export default function HealthInsightsPage({ inventory, onRefresh }) {
                 "{settings.healthProfile}"
               </div>
             </div>
+            <button className="btn btn-glass btn-sm" onClick={() => setIsEditing(true)}>
+              Edit
+            </button>
             <button className="btn-icon" onClick={fetchInsights} disabled={loading} style={{ background: 'var(--glass-2)' }}>
               <RefreshCw className={loading ? 'spin' : ''} size={16} />
             </button>

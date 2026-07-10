@@ -112,7 +112,7 @@ export default function DashboardPage({ inventory, onRefresh }) {
           <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--cyan-glow)', border: '1px solid var(--cyan-400)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, boxShadow: '0 0 15px var(--cyan-glow)' }}>
             <Camera size={20} color="var(--cyan-400)" />
           </div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-100)', marginBottom: 4 }}>Fridge Scanner</div>
+          <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-100)', marginBottom: 4 }}>Scanner</div>
           <div style={{ fontSize: 12, color: 'var(--text-400)', lineHeight: 1.4 }}>Auto-identify items with Gemini Vision</div>
         </div>
 

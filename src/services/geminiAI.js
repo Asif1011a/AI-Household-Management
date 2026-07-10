@@ -97,6 +97,7 @@ Identify ALL visible food items and grocery products. For each item:
 - Analyze visual freshness specifically for fresh produce, dairy, and leftovers.
 - Suggest best storage location (fridge, freezer, pantry, counter)
 - Estimate shelf life in days from today (${today}) considering Indian climate
+- IMPORTANT OCR TASK: Carefully read any printed text on packaged goods to find Expiry Dates (EXP, Use By, Best Before) or Manufacturing Dates (MFD, PKD). If you find a printed date, use it to accurately calculate the \`expiryDate\`!
 
 Return a JSON array:
 [

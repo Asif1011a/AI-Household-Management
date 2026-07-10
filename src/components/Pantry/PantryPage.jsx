@@ -1,32 +1,23 @@
 import { useState, useMemo } from 'react';
-import { Trash2, CheckCircle, XCircle, Edit2, X } from 'lucide-react';
+import { Trash2, CheckCircle, XCircle, Edit2, X, Search, Filter } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { getDaysRemaining, formatDaysRemaining, formatDate } from '../../utils/dateUtils';
+import { getDaysRemaining, formatDaysRemaining } from '../../utils/dateUtils';
 import { CATEGORIES, STORAGE_LOCATIONS } from '../../data/categories';
 import { markItemUsed, markItemWasted, deleteItem, updateItem } from '../../services/storage';
 import { todayISO, addDaysToToday } from '../../utils/dateUtils';
 
 const STATUS_CHIPS = [
-  { id: 'all', label: '🗂 All' },
-  { id: 'urgent', label: '🔴 Urgent' },
-  { id: 'warning', label: '🟡 Soon' },
-  { id: 'fresh', label: '🟢 Fresh' },
-  { id: 'expired', label: '⚫ Expired' },
-];
-
-const LOCATION_CHIPS = [
-  { id: 'all', label: '📦 All' },
-  { id: 'fridge', label: '🧊 Fridge' },
-  { id: 'freezer', label: '❄️ Freezer' },
-  { id: 'pantry', label: '🗄️ Pantry' },
-  { id: 'counter', label: '🍽️ Counter' },
+  { id: 'all', label: 'All' },
+  { id: 'urgent', label: 'Urgent', color: 'var(--urgent)' },
+  { id: 'warning', label: 'Soon', color: 'var(--warning)' },
+  { id: 'fresh', label: 'Fresh', color: 'var(--fresh)' },
+  { id: 'expired', label: 'Expired', color: 'var(--expired)' },
 ];
 
 const UNITS = ['piece', 'kg', 'grams', 'litre', 'ml', 'bunch', 'packet', 'bottle', 'bowl', 'cup', 'dozen'];
 
 export default function PantryPage({ inventory, onRefresh, addToast }) {
   const [statusFilter, setStatusFilter] = useState('all');
-  const [locationFilter, setLocationFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -39,26 +30,14 @@ export default function PantryPage({ inventory, onRefresh, addToast }) {
   const filtered = useMemo(() => {
     let r = activeItems;
     if (statusFilter !== 'all') r = r.filter(i => i.status === statusFilter);
-    if (locationFilter !== 'all') r = r.filter(i => i.storageLocation === locationFilter);
     if (search) r = r.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
     return [...r].sort((a, b) => b.priorityScore - a.priorityScore);
-  }, [activeItems, statusFilter, locationFilter, search]);
-
-  const getCounts = (statusId) => {
-    if (statusId === 'all') return activeItems.length;
-    return activeItems.filter(i => i.status === statusId).length;
-  };
+  }, [activeItems, statusFilter, search]);
 
   const handleUsed = (id, name) => {
     markItemUsed(id);
     onRefresh();
-    // Dopamine hit: Confetti explosion!
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#4ade80', '#22d3ee', '#fbbf24']
-    });
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#22d3ee', '#a78bfa'] });
     addToast?.(`✅ "${name}" marked as used!`, 'success');
   };
 
@@ -72,61 +51,57 @@ export default function PantryPage({ inventory, onRefresh, addToast }) {
 
   return (
     <div className="page-enter">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: 24 }}>
         <div>
           <h1 className="page-title">My Pantry</h1>
-          <p className="page-subtitle">{activeItems.length} {showHistory ? 'history' : 'active'} items</p>
+          <p className="page-subtitle">{activeItems.length} {showHistory ? 'history' : 'active'} items total</p>
         </div>
-        <button
-          className="btn btn-glass btn-sm"
-          onClick={() => setShowHistory(!showHistory)}
-          style={{ flexShrink: 0 }}
-        >
+        <button className="btn btn-glass btn-sm" onClick={() => setShowHistory(!showHistory)} style={{ borderRadius: 'var(--r-full)' }}>
           {showHistory ? '📦 Active' : '📋 History'}
         </button>
       </div>
 
-      {/* Search */}
-      <input
-        className="form-input"
-        style={{ marginBottom: 14 }}
-        placeholder="🔍 Search items..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
-
-      {/* Status chips */}
-      <div className="chip-bar">
-        {STATUS_CHIPS.map(f => (
-          <button key={f.id} className={`chip ${statusFilter === f.id ? 'active' : ''}`}
-            onClick={() => setStatusFilter(f.id)}>
-            {f.label}
-            {f.id !== 'all' && <span style={{ opacity: 0.7 }}>({getCounts(f.id)})</span>}
-          </button>
-        ))}
+      {/* Advanced Search & Filter Bar */}
+      <div className="glass-card" style={{ padding: 12, marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ position: 'relative' }}>
+          <Search size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-400)' }} />
+          <input
+            className="form-input"
+            style={{ paddingLeft: 44, background: 'rgba(255,255,255,0.02)', border: 'none' }}
+            placeholder="Search ingredients..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="chip-bar" style={{ paddingBottom: 0, paddingLeft: 4 }}>
+          {STATUS_CHIPS.map(f => (
+            <button key={f.id} 
+              className={`chip ${statusFilter === f.id ? 'active' : ''}`}
+              style={{
+                borderColor: statusFilter === f.id ? f.color : 'transparent',
+                color: statusFilter === f.id ? f.color : 'var(--text-400)',
+              }}
+              onClick={() => setStatusFilter(f.id)}>
+              {f.id !== 'all' && <span style={{ width: 8, height: 8, borderRadius: 4, background: f.color, marginRight: 6, display: 'inline-block' }}/>}
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Location chips */}
-      <div className="chip-bar">
-        {LOCATION_CHIPS.map(f => (
-          <button key={f.id} className={`chip ${locationFilter === f.id ? 'active' : ''}`}
-            onClick={() => setLocationFilter(f.id)}>
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Items */}
+      {/* Items List */}
       {filtered.length === 0 ? (
-        <div className="empty-v2">
-          <div className="empty-icon">{inventory.length === 0 ? '🌿' : '🔍'}</div>
-          <div className="empty-title">{inventory.length === 0 ? 'Pantry is empty' : 'No matches'}</div>
-          <div className="empty-desc">
-            {inventory.length === 0 ? 'Scan your fridge or add items to get started!' : 'Try different filters'}
+        <div className="glass-card" style={{ padding: 40, textAlign: 'center', background: 'transparent' }}>
+          <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.5 }}>{inventory.length === 0 ? '🌿' : '🔍'}</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-200)', marginBottom: 8 }}>
+            {inventory.length === 0 ? 'Pantry is empty' : 'No matches found'}
+          </div>
+          <div style={{ color: 'var(--text-500)', fontSize: 14 }}>
+            {inventory.length === 0 ? 'Scan your fridge or add items manually to get started!' : 'Try adjusting your search filters'}
           </div>
         </div>
       ) : (
-        <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {filtered.map(item => (
             <FoodCardV2
               key={item.id}
@@ -165,74 +140,72 @@ function FoodCardV2({ item, isHistory, onUsed, onWasted, onDelete, onEdit }) {
 
   return (
     <div className={`food-card-v2 status-${item.status}`} style={{ '--status-color': statusColor }}>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-        <div className="food-emoji-blob">{emoji}</div>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: 'var(--r-lg)',
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0
+        }}>
+          {emoji}
+        </div>
+        
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-            <div className="food-card-title truncate">{item.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-100)' }} className="truncate">
+              {item.name}
+            </div>
             {!isHistory && (
-              <button className="btn-icon" style={{ flexShrink: 0, width: 30, height: 30 }} onClick={onEdit}>
-                <Edit2 size={13} />
+              <button className="btn-icon" style={{ flexShrink: 0, width: 32, height: 32 }} onClick={onEdit}>
+                <Edit2 size={14} color="var(--text-400)" />
               </button>
             )}
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-            <span className={`status-pill ${item.status}`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: 12, fontWeight: 700, padding: '4px 10px',
+              background: `color-mix(in srgb, ${statusColor} 15%, transparent)`,
+              color: statusColor, borderRadius: 'var(--r-sm)',
+              border: `1px solid color-mix(in srgb, ${statusColor} 30%, transparent)`
+            }}>
               {item.status === 'fresh' ? '🟢' : item.status === 'warning' ? '🟡' : item.status === 'urgent' ? '🔴' : '⚫'}
               {' '}{formatDaysRemaining(days)}
             </span>
-            <span style={{
-              fontSize: 11, color: 'var(--text-500)', padding: '3px 8px',
-              background: 'var(--glass-2)', borderRadius: 'var(--r-full)',
-              border: '1px solid var(--glass-border)',
-            }}>
-              {locEmoji} {item.quantity} {item.unit}
+            <span style={{ fontSize: 13, color: 'var(--text-400)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ opacity: 0.5 }}>{locEmoji}</span> {item.quantity} {item.unit}
             </span>
           </div>
-
-          {/* Priority Bar */}
-          {!isHistory && (
-            <div style={{ marginBottom: 10 }}>
-              <div className="progress-track">
-                <div className="progress-fill-animated" style={{
-                  width: `${item.priorityScore}%`,
-                  background: item.priorityScore >= 70 ? 'var(--urgent)' :
-                    item.priorityScore >= 40 ? 'var(--warning)' : 'var(--fresh)',
-                }} />
-              </div>
-            </div>
-          )}
-
-          {isHistory ? (
-            <span style={{
-              fontSize: 13, fontWeight: 700,
-              color: item.isUsed ? 'var(--fresh)' : 'var(--expired)',
-            }}>
-              {item.isUsed ? '✅ Saved' : '❌ Wasted'}
-            </span>
-          ) : (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={onUsed} className="btn btn-sm" style={{
-                flex: 1, background: 'var(--fresh-bg)', color: 'var(--fresh)',
-                border: '1px solid var(--fresh-border)', borderRadius: 'var(--r-sm)',
-                gap: 5,
-              }}>
-                <CheckCircle size={13} /> Used
-              </button>
-              <button onClick={onWasted} className="btn btn-sm" style={{
-                flex: 1, background: 'var(--expired-bg)', color: 'var(--expired)',
-                border: '1px solid var(--expired-border)', borderRadius: 'var(--r-sm)',
-                gap: 5,
-              }}>
-                <XCircle size={13} /> Wasted
-              </button>
-              <button onClick={onDelete} className="btn-icon" style={{ padding: '6px 8px', flexShrink: 0 }}>
-                <Trash2 size={13} style={{ color: 'var(--urgent)' }} />
-              </button>
-            </div>
-          )}
         </div>
+      </div>
+
+      {/* Action Buttons for History / Active */}
+      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 8 }}>
+        {isHistory ? (
+          <div style={{ fontSize: 14, fontWeight: 700, color: item.isUsed ? 'var(--fresh)' : 'var(--expired)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            {item.isUsed ? <CheckCircle size={16} /> : <XCircle size={16} />}
+            {item.isUsed ? 'Successfully Used' : 'Wasted / Expired'}
+          </div>
+        ) : (
+          <>
+            <button onClick={onUsed} className="btn" style={{
+              flex: 1, background: 'color-mix(in srgb, var(--fresh) 10%, transparent)',
+              color: 'var(--fresh)', border: '1px solid color-mix(in srgb, var(--fresh) 20%, transparent)',
+              borderRadius: 'var(--r-md)', gap: 8, height: 40,
+            }}>
+              <CheckCircle size={16} /> Used
+            </button>
+            <button onClick={onWasted} className="btn" style={{
+              flex: 1, background: 'color-mix(in srgb, var(--expired) 10%, transparent)',
+              color: 'var(--expired)', border: '1px solid color-mix(in srgb, var(--expired) 20%, transparent)',
+              borderRadius: 'var(--r-md)', gap: 8, height: 40,
+            }}>
+              <XCircle size={16} /> Wasted
+            </button>
+            <button onClick={onDelete} className="btn-icon" style={{ width: 40, height: 40, flexShrink: 0, background: 'rgba(255,255,255,0.02)' }}>
+              <Trash2 size={16} style={{ color: 'var(--urgent)' }} />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -247,11 +220,11 @@ function EditModal({ item, onClose, onSave }) {
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-sheet">
+      <div className="modal-sheet glass-card" style={{ background: 'var(--bg-deep)', padding: 24, borderRadius: '24px 24px 0 0' }}>
         <div className="modal-handle" />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <h2 className="modal-title">Edit Item</h2>
-          <button className="btn-icon" onClick={onClose}><X size={17} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <h2 className="modal-title" style={{ margin: 0 }}>Edit Item</h2>
+          <button className="btn-icon" onClick={onClose}><X size={20} /></button>
         </div>
 
         <div className="form-group">
@@ -294,9 +267,9 @@ function EditModal({ item, onClose, onSave }) {
             onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value }))} />
         </div>
 
-        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-          <button className="btn btn-glass" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" style={{ flex: 2 }}
+        <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+          <button className="btn btn-glass" style={{ flex: 1, padding: 16 }} onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" style={{ flex: 2, padding: 16 }}
             onClick={() => { updateItem(item.id, form); onSave(); }}>
             Save Changes
           </button>

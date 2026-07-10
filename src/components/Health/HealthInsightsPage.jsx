@@ -1,207 +1,174 @@
-import { useState, useEffect } from 'react';
-import { HeartPulse, AlertCircle, CheckCircle, Apple, ShoppingBag } from 'lucide-react';
+import { useState } from 'react';
+import { Leaf, Activity, ChevronRight, Apple, Zap, User } from 'lucide-react';
 import { loadSettings, saveSettings } from '../../services/storage';
-import { analyzeHealthImpact } from '../../services/geminiAI';
+import { getHealthInsights } from '../../services/geminiAI';
+import Header from '../Layout/Header';
 
 export default function HealthInsightsPage({ inventory, onRefresh }) {
   const [settings, setSettings] = useState(loadSettings());
-  const [loading, setLoading] = useState(false);
-  const [insights, setInsights] = useState(null);
-  const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-
-  const hasProfile = !!settings.healthProfile && settings.healthProfile.trim().length > 0;
-
-  const handleChange = (field, value) => setSettings(prev => ({ ...prev, [field]: value }));
+  const [insights, setInsights] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSaveProfile = () => {
     saveSettings(settings);
     setIsEditing(false);
-    fetchInsights();
+    onRefresh();
   };
 
-  const fetchInsights = async () => {
-    if (!hasProfile) return;
-    
+  const handleGetInsights = async () => {
+    const active = inventory.filter(i => !i.isUsed && !i.isWasted);
+    if (active.length === 0) {
+      setError('Add some items to your pantry first to get insights!');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const activeItems = inventory.filter(i => !i.isUsed && !i.isWasted);
-      // Hardcode/Inject API key under the hood or mock the response
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 'MOCK';
-      const data = await analyzeHealthImpact(apiKey, activeItems, settings.healthProfile);
-      setInsights(data);
+      const result = await getHealthInsights(settings.geminiApiKey, active, settings.healthProfile);
+      setInsights(result);
     } catch (err) {
-      setError('Failed to fetch health insights: ' + err.message);
+      setError('Failed to generate insights: ' + err.message);
     }
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (hasProfile && !isEditing) {
-      fetchInsights();
-    }
-  }, [hasProfile, inventory.length, isEditing]);
-
   return (
     <div className="page-enter">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title gradient-text-aurora" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <HeartPulse size={26} color="var(--cyan-400)" /> Health Insights
-          </h1>
-          <p className="page-subtitle">Personalized dietary analysis & smart shopping</p>
-        </div>
-      </div>
+      <Header title="Health Insights" subtitle="Personalized nutrition & diet analysis" />
 
-      {!hasProfile || isEditing ? (
-        <div className="glass-card mb-24" style={{ padding: 24 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: 'var(--cyan-400)' }}>⚕️</span> Health & Dietary Profile
-          </h2>
-          <p style={{ fontSize: 13, color: 'var(--text-400)', marginBottom: 20 }}>
-            Describe your medical conditions, allergies, or dietary goals in plain English (or use voice). Our AI handles the rest!
-          </p>
-          
-          <div className="form-group mb-16" style={{ position: 'relative' }}>
-            <textarea
-              className="form-input"
-              rows={4}
-              placeholder="e.g., I have Type 2 Diabetes and my son is allergic to peanuts. We are trying to eat less sugar."
-              value={settings.healthProfile || ''}
-              onChange={e => handleChange('healthProfile', e.target.value)}
-              style={{ resize: 'vertical' }}
-            />
-            <button
-              className="btn-icon"
-              style={{ position: 'absolute', bottom: 12, right: 12, background: 'var(--glass-2)' }}
-              onClick={() => {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (!SpeechRecognition) {
-                  alert('Voice input is not supported in this browser.');
-                  return;
-                }
-                const recognition = new SpeechRecognition();
-                recognition.lang = 'en-IN';
-                recognition.interimResults = false;
-                
-                recognition.onresult = (event) => {
-                  const transcript = event.results[0][0].transcript;
-                  const currentText = settings.healthProfile ? settings.healthProfile + ' ' : '';
-                  handleChange('healthProfile', currentText + transcript);
-                };
-                
-                recognition.start();
-              }}
-              title="Click to dictate"
-            >
-              🎤
+      <div className="page-content">
+        
+        {/* Profile Card */}
+        <div className="glass-card" style={{ marginBottom: 24 }}>
+          <div style={{ padding: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: isEditing ? '1px solid var(--glass-border)' : 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={24} color="#3b82f6" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-100)', marginBottom: 2 }}>Dietary Profile</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-400)' }}>Tailor AI suggestions to your body</p>
+              </div>
+            </div>
+            <button className="btn btn-glass btn-sm" onClick={() => setIsEditing(!isEditing)} style={{ borderRadius: 'var(--r-full)' }}>
+              {isEditing ? 'Cancel' : 'Edit Profile'}
             </button>
           </div>
-          
-          <div style={{ display: 'flex', gap: 12 }}>
-            {hasProfile && (
-              <button className="btn btn-glass" style={{ flex: 1 }} onClick={() => setIsEditing(false)}>
-                Cancel
+
+          {isEditing ? (
+            <div className="slide-up" style={{ padding: 20 }}>
+              <div className="form-group">
+                <label className="form-label">Health Conditions or Allergies</label>
+                <textarea
+                  className="form-textarea"
+                  placeholder="e.g. Peanut allergy, Type 2 Diabetes, Lactose Intolerant"
+                  value={settings.healthProfile.conditions}
+                  onChange={e => setSettings({
+                    ...settings,
+                    healthProfile: { ...settings.healthProfile, conditions: e.target.value }
+                  })}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Dietary Preference</label>
+                <select
+                  className="form-select"
+                  value={settings.healthProfile.dietType}
+                  onChange={e => setSettings({
+                    ...settings,
+                    healthProfile: { ...settings.healthProfile, dietType: e.target.value }
+                  })}
+                >
+                  <option value="none">No specific diet</option>
+                  <option value="vegetarian">Vegetarian</option>
+                  <option value="vegan">Vegan</option>
+                  <option value="keto">Keto</option>
+                  <option value="paleo">Paleo</option>
+                </select>
+              </div>
+              <button className="btn btn-primary btn-full" style={{ marginTop: 8 }} onClick={handleSaveProfile}>
+                Save Profile
               </button>
-            )}
-            <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSaveProfile}>
-              Save Profile
-            </button>
-          </div>
+            </div>
+          ) : (
+            <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ background: 'rgba(255,255,255,0.05)', padding: '6px 12px', borderRadius: 'var(--r-full)', fontSize: 13, color: 'var(--text-200)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                Diet: <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{settings.healthProfile.dietType}</span>
+              </span>
+              {settings.healthProfile.conditions && (
+                <span style={{ background: 'rgba(244,63,94,0.1)', color: 'var(--urgent)', border: '1px solid rgba(244,63,94,0.2)', padding: '6px 12px', borderRadius: 'var(--r-full)', fontSize: 13, fontWeight: 600 }}>
+                  ⚠️ {settings.healthProfile.conditions}
+                </span>
+              )}
+            </div>
+          )}
         </div>
-      ) : (
-        <>
-          <div className="glass-card mb-20" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-500)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-                Active Profile
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 600, fontStyle: 'italic', color: 'var(--text-300)' }}>
-                "{settings.healthProfile}"
-              </div>
-            </div>
-            <button className="btn btn-glass btn-sm" onClick={() => setIsEditing(true)}>
-              Edit
-            </button>
-            <button className="btn-icon" onClick={fetchInsights} disabled={loading} style={{ background: 'var(--glass-2)' }}>
-              <RefreshCw className={loading ? 'spin' : ''} size={16} />
-            </button>
+
+        {/* Action Button */}
+        <button
+          className="btn btn-primary btn-full"
+          style={{ height: 56, fontSize: 16, borderRadius: 'var(--r-lg)', background: 'linear-gradient(135deg, var(--green-500), var(--green-400))', marginBottom: 24 }}
+          onClick={handleGetInsights}
+          disabled={loading}
+        >
+          {loading ? (
+            <><div className="spinner" /> Analyzing your pantry...</>
+          ) : (
+            <><Activity size={20} style={{ marginRight: 8 }} /> Generate Health Insights</>
+          )}
+        </button>
+
+        {error && (
+          <div style={{ background: 'var(--urgent-bg)', color: 'var(--urgent)', border: '1px solid var(--urgent-border)', padding: 16, borderRadius: 'var(--r-md)', marginBottom: 24, fontSize: 14 }}>
+            {error}
           </div>
+        )}
 
-          {error && (
-            <div style={{ padding: '12px 16px', background: 'var(--urgent-bg)', color: 'var(--urgent)', borderRadius: 'var(--r-md)', marginBottom: 20 }}>
-              {error}
-            </div>
-          )}
-
-          {loading && !insights && (
-            <div className="glass-card" style={{ padding: 40, textAlign: 'center' }}>
-              <div className="dot-loader" style={{ justifyContent: 'center', marginBottom: 16 }}><span/><span/><span/></div>
-              <div style={{ fontWeight: 600 }}>Analyzing your pantry...</div>
-              <div style={{ fontSize: 13, color: 'var(--text-500)' }}>Gemini is cross-referencing your medical profile</div>
-            </div>
-          )}
-
-          {insights && (
-            <div className="stagger">
-              {/* Pantry Flags */}
-              <div className="section-label">Pantry Flags</div>
-              
-              <div className="glass-card mb-24" style={{ padding: '4px 0' }}>
-                {insights.pantryFlags?.length === 0 && (
-                  <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-500)', fontSize: 13 }}>
-                    No items in your pantry pose a direct threat.
-                  </div>
-                )}
-                {insights.pantryFlags?.map((flag, idx) => {
-                  const isGood = flag.status === 'GOOD';
-                  return (
-                    <div key={idx} style={{
-                      padding: '12px 16px', display: 'flex', gap: 12, alignItems: 'flex-start',
-                      borderBottom: idx < insights.pantryFlags.length - 1 ? '1px solid var(--glass-border)' : 'none'
-                    }}>
-                      <div style={{ fontSize: 18, marginTop: 2 }}>{isGood ? '✅' : '⚠️'}</div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: isGood ? 'var(--fresh)' : 'var(--urgent)' }}>
-                          {flag.itemName}
-                        </div>
-                        <div style={{ fontSize: 13, color: 'var(--text-400)', marginTop: 2 }}>{flag.reason}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* Insights Results */}
+        {insights && (
+          <div className="slide-up">
+            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, color: 'var(--text-100)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Zap size={18} color="var(--green-400)" /> AI Analysis Results
+            </h3>
+            
+            <div className="glass-card" style={{ padding: 24, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <Apple size={24} color="var(--green-400)" />
+                <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-100)', margin: 0 }}>Nutrition Overview</h4>
               </div>
+              <p style={{ fontSize: 14, color: 'var(--text-300)', lineHeight: 1.6 }}>{insights.overview}</p>
+            </div>
 
-              {/* Shopping Recommendations */}
-              <div className="section-label">Smart Shopping List</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginBottom: 24 }}>
-                {insights.shoppingRecommendations?.map((rec, idx) => (
-                  <div key={idx} className="glass-card" style={{ padding: '16px', borderLeft: `3px solid var(--cyan-400)` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                      <ShoppingBag size={16} color="var(--cyan-400)" />
-                      <span style={{ fontWeight: 700, fontSize: 15 }}>{rec.itemName}</span>
+            <div className="glass-card" style={{ padding: 24, marginBottom: 16 }}>
+              <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-100)', marginBottom: 16 }}>Recommendations</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {insights.recommendations.map((rec, i) => (
+                  <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--green-400)', fontSize: 12, fontWeight: 700 }}>
+                      {i + 1}
                     </div>
-                    <div style={{ fontSize: 13, color: 'var(--text-400)' }}>{rec.benefit}</div>
-                  </div>
+                    <span style={{ fontSize: 14, color: 'var(--text-300)', lineHeight: 1.5, paddingTop: 2 }}>{rec}</span>
+                  </li>
                 ))}
-              </div>
-
-              {/* General Dietary Advice */}
-              <div className="glass-card" style={{ padding: 20, background: 'linear-gradient(135deg, rgba(34,211,238,0.1), rgba(167,139,250,0.1))' }}>
-                <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Apple size={16} /> AI Dietician Summary
-                </h3>
-                <p style={{ fontSize: 13, color: 'var(--text-200)', lineHeight: 1.6 }}>
-                  {insights.generalAdvice}
-                </p>
-              </div>
+              </ul>
             </div>
-          )}
-        </>
-      )}
+
+            <div className="glass-card" style={{ padding: 24, background: 'rgba(244,63,94,0.02)' }}>
+              <h4 style={{ fontSize: 16, fontWeight: 700, color: 'var(--urgent)', marginBottom: 16 }}>Warnings & Deficiencies</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {insights.warnings.map((warning, i) => (
+                  <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+                    <span style={{ fontSize: 14, color: 'var(--text-300)', lineHeight: 1.5, paddingTop: 2 }}>{warning}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-import { RefreshCw } from 'lucide-react';

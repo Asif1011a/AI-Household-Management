@@ -460,7 +460,6 @@ img { display: block; max-width: 100%; }
 }
 
 .hero-stat {
-  glass-card: auto;
   background: var(--glass-2);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
@@ -506,36 +505,20 @@ img { display: block; max-width: 100%; }
    ══════════════════════════════════════════════════════════════════════════ */
 
 .food-card-v2 {
+  position: relative;
   background: var(--glass-2);
   border: 1px solid var(--glass-border);
+  border-left: 4px solid var(--status-color, var(--fresh));
   border-radius: var(--r-xl);
   padding: 16px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  position: relative;
-  overflow: hidden;
   transition: all var(--t-base);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.food-card-v2::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: var(--status-color, var(--fresh));
-  box-shadow: 0 0 12px var(--status-color, var(--fresh));
-}
-
-.food-card-v2::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 40%);
-  border-radius: inherit;
-  pointer-events: none;
+.food-card-v2:hover {
+  background: var(--glass-3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
 .food-card-v2.status-urgent {
@@ -739,6 +722,18 @@ img { display: block; max-width: 100%; }
 /* ══════════════════════════════════════════════════════════════════════════
    AI FEATURE CARDS (Fridge Scanner, Voice, Freshness)
    ══════════════════════════════════════════════════════════════════════════ */
+
+.ai-feature.glass-card {
+  background: var(--glass-3);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-border-bright);
+  border-radius: var(--r-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  overflow: hidden;
+  position: relative;
+}
 
 .ai-feature-card {
   background: var(--glass-2);
@@ -1076,9 +1071,9 @@ img { display: block; max-width: 100%; }
 .form-input::placeholder, .form-textarea::placeholder { color: var(--text-600); }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
-  border-color: rgba(74, 222, 128, 0.5);
-  background: rgba(74, 222, 128, 0.04);
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.08), var(--shadow-card);
+  border-color: var(--green-400);
+  background: rgba(16, 185, 129, 0.05);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1), inset 0 1px 1px rgba(0,0,0,0.5);
 }
 
 .form-select {

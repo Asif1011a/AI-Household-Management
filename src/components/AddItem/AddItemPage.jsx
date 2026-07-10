@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Sparkles, Mic, X } from 'lucide-react';
+import { Plus, Sparkles, Mic, X, Type } from 'lucide-react';
 import { CATEGORIES, STORAGE_LOCATIONS } from '../../data/categories';
 import { addItem, addItems, loadSettings } from '../../services/storage';
 import { parseFoodInput } from '../../services/geminiAI';
@@ -80,21 +80,21 @@ export default function AddItemPage({ onRefresh, addToast }) {
 
   return (
     <div className="page-enter">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: 24 }}>
         <div>
           <h1 className="page-title">Add Items</h1>
-          <p className="page-subtitle">Manual, AI bulk, or voice — your choice</p>
+          <p className="page-subtitle">Type, speak, or bulk add your groceries</p>
         </div>
       </div>
 
       {/* Voice Modal */}
       {showVoice && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowVoice(false)}>
-          <div className="modal-sheet">
+          <div className="modal-sheet glass-card" style={{ background: 'var(--bg-deep)' }}>
             <div className="modal-handle" />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <h2 className="modal-title">🎤 Voice Input</h2>
-              <button className="btn-icon" onClick={() => setShowVoice(false)}><X size={17} /></button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 className="modal-title" style={{ margin: 0 }}>🎤 Voice Assistant</h2>
+              <button className="btn-icon" onClick={() => setShowVoice(false)}><X size={20} /></button>
             </div>
             <VoiceInput
               onTranscript={(text) => { setBulkText(text); handleAIParse(text); }}
@@ -104,34 +104,53 @@ export default function AddItemPage({ onRefresh, addToast }) {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="tab-bar">
-        <button className={`tab-btn ${tab === 'manual' ? 'active' : ''}`} onClick={() => setTab('manual')}>
-          ✏️ Manual
+      {/* Premium Tab Bar */}
+      <div className="glass-card" style={{ display: 'flex', padding: 6, gap: 6, marginBottom: 24, borderRadius: 'var(--r-full)' }}>
+        <button
+          className="btn"
+          style={{
+            flex: 1, height: 44, borderRadius: 'var(--r-full)',
+            background: tab === 'manual' ? 'rgba(255,255,255,0.1)' : 'transparent',
+            color: tab === 'manual' ? 'var(--text-100)' : 'var(--text-400)',
+            fontWeight: tab === 'manual' ? 700 : 500,
+            transition: 'all var(--t-fast)'
+          }}
+          onClick={() => setTab('manual')}
+        >
+          <Type size={16} style={{ marginRight: 8 }} /> Manual Entry
         </button>
-        <button className={`tab-btn ${tab === 'bulk' ? 'active' : ''}`} onClick={() => setTab('bulk')}>
-          ✨ AI Bulk
+        <button
+          className="btn"
+          style={{
+            flex: 1, height: 44, borderRadius: 'var(--r-full)',
+            background: tab === 'bulk' ? 'rgba(167,139,250,0.15)' : 'transparent',
+            color: tab === 'bulk' ? 'var(--violet-400)' : 'var(--text-400)',
+            fontWeight: tab === 'bulk' ? 700 : 500,
+            transition: 'all var(--t-fast)'
+          }}
+          onClick={() => setTab('bulk')}
+        >
+          <Sparkles size={16} style={{ marginRight: 8 }} /> AI Bulk Add
         </button>
       </div>
 
       {/* Manual Entry */}
       {tab === 'manual' && (
-        <div className="glass-card page-enter" style={{ padding: 20 }}>
-          <div className="form-group">
-            <label className="form-label">Item Name *</label>
+        <div className="glass-card page-enter" style={{ padding: 24 }}>
+          <div className="form-group" style={{ marginBottom: 20 }}>
+            <label className="form-label">Item Name</label>
             <input
               className="form-input"
-              placeholder="e.g. Palak, Dahi, Atta, Bread..."
+              style={{ fontSize: 18, padding: 16 }}
+              placeholder="e.g. Milk, Apples, Bread..."
               value={form.name}
               onChange={e => handleFormChange('name', e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleManualAdd()}
+              autoFocus
             />
-            <div style={{ fontSize: 12, color: 'var(--text-600)' }}>
-              💡 Expiry auto-estimated from name
-            </div>
           </div>
 
-          <div className="form-row">
+          <div className="form-row" style={{ marginBottom: 20 }}>
             <div className="form-group">
               <label className="form-label">Category</label>
               <select className="form-select" value={form.category} onChange={e => handleFormChange('category', e.target.value)}>
@@ -146,171 +165,135 @@ export default function AddItemPage({ onRefresh, addToast }) {
             </div>
           </div>
 
-          <div className="form-row-3">
+          <div className="form-row" style={{ marginBottom: 24 }}>
             <div className="form-group">
-              <label className="form-label">Qty</label>
-              <input className="form-input" type="number" min="0.1" step="0.1"
-                value={form.quantity} onChange={e => handleFormChange('quantity', parseFloat(e.target.value) || 1)} />
+              <label className="form-label">Quantity</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input className="form-input" type="number" min="0.1" step="0.1"
+                  style={{ flex: 1 }}
+                  value={form.quantity} onChange={e => handleFormChange('quantity', parseFloat(e.target.value) || 1)} />
+                <select className="form-select" style={{ flex: 1.5 }} value={form.unit} onChange={e => handleFormChange('unit', e.target.value)}>
+                  {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                </select>
+              </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Unit</label>
-              <select className="form-select" value={form.unit} onChange={e => handleFormChange('unit', e.target.value)}>
-                {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Expires</label>
+              <label className="form-label">Estimated Expiry</label>
               <input className="form-input" type="date" value={form.expiryDate} min={todayISO()}
                 onChange={e => handleFormChange('expiryDate', e.target.value)} />
             </div>
           </div>
 
-          {/* Quick expiry */}
-          <div style={{ marginBottom: 20 }}>
-            <div className="form-label" style={{ marginBottom: 8 }}>Quick Expiry</div>
-            <div className="chip-bar" style={{ paddingBottom: 0 }}>
-              {[1, 2, 3, 5, 7, 14, 30, 90].map(d => (
-                <button key={d} className={`chip ${form.expiryDate === addDaysToToday(d) ? 'active' : ''}`}
-                  onClick={() => handleFormChange('expiryDate', addDaysToToday(d))}>
-                  {d}d
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button className="btn btn-primary btn-full btn-lg" onClick={handleManualAdd} disabled={!form.name.trim()}>
-            <Plus size={18} /> Add to Pantry
+          <button
+            className="btn btn-primary btn-full"
+            style={{ height: 56, fontSize: 16, borderRadius: 'var(--r-lg)' }}
+            onClick={handleManualAdd}
+            disabled={!form.name.trim()}
+          >
+            <Plus size={20} style={{ marginRight: 8 }} /> Add Item to Pantry
           </button>
         </div>
       )}
 
       {/* AI Bulk Add */}
       {tab === 'bulk' && (
-        <div className="glass-card page-enter" style={{ padding: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 20 }}>
+        <div className="glass-card page-enter" style={{ padding: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 16 }}>AI Bulk Add</span>
-                <span style={{
-                  background: 'rgba(99,102,241,0.15)', color: 'var(--violet-400)',
-                  border: '1px solid rgba(99,102,241,0.3)',
-                  borderRadius: 'var(--r-full)', padding: '2px 8px', fontSize: 10, fontWeight: 700,
-                }}>✨ GEMINI</span>
+                <Sparkles size={20} color="var(--violet-400)" />
+                <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 18, color: 'var(--text-100)' }}>Gemini Vision</span>
               </div>
-              <p style={{ fontSize: 13, color: 'var(--text-500)', lineHeight: 1.5 }}>
-                Type or speak what you bought. AI parses everything.
+              <p style={{ fontSize: 14, color: 'var(--text-400)', margin: 0 }}>
+                Type or dictate your grocery list directly.
               </p>
             </div>
-            {/* Voice Button */}
             <button
-              className="btn"
+              className="btn btn-glass"
               style={{
-                background: 'linear-gradient(135deg, rgba(167,139,250,0.2), rgba(167,139,250,0.1))',
-                border: '1px solid rgba(167,139,250,0.3)',
-                color: 'var(--violet-400)',
-                borderRadius: 'var(--r-md)',
-                padding: '10px 14px',
-                flexShrink: 0,
-                gap: 6,
+                borderRadius: 'var(--r-full)', width: 48, height: 48, padding: 0,
+                background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)'
               }}
               onClick={() => setShowVoice(true)}
             >
-              <Mic size={16} /> Voice
+              <Mic size={20} color="var(--violet-400)" />
             </button>
-          </div>
-
-          <div style={{
-            background: 'rgba(167,139,250,0.05)',
-            border: '1px solid rgba(167,139,250,0.15)',
-            borderRadius: 'var(--r-md)',
-            padding: '10px 14px',
-            marginBottom: 14,
-            fontSize: 13, color: 'var(--text-500)',
-          }}>
-            💡 <em>"2kg aloo, 500g palak, 1L doodh, 6 anda, bread, atta 2kg"</em>
           </div>
 
           <textarea
             className="form-textarea"
-            style={{ marginBottom: 14 }}
-            placeholder="Type your grocery list here... (Hindi or English both work!)"
+            style={{ minHeight: 120, fontSize: 16, padding: 16, marginBottom: 20 }}
+            placeholder="e.g. 2kg potatoes, half dozen eggs, 1 bottle of milk..."
             value={bulkText}
             onChange={e => setBulkText(e.target.value)}
           />
 
           {aiError && (
             <div style={{
-              padding: '10px 14px', borderRadius: 'var(--r-md)',
+              padding: 16, borderRadius: 'var(--r-md)',
               background: 'var(--urgent-bg)', border: '1px solid var(--urgent-border)',
-              color: 'var(--urgent)', fontSize: 13, marginBottom: 14,
+              color: 'var(--urgent)', fontSize: 14, marginBottom: 20,
             }}>
               {aiError}
             </div>
           )}
 
           <button
-            className="btn btn-primary btn-full btn-lg"
+            className="btn btn-primary btn-full"
+            style={{
+              height: 56, fontSize: 16, borderRadius: 'var(--r-lg)',
+              background: 'linear-gradient(135deg, var(--violet-400), #818cf8)'
+            }}
             onClick={() => handleAIParse()}
             disabled={aiLoading || !bulkText.trim()}
-            style={{ marginBottom: parsedItems.length ? 20 : 0 }}
           >
             {aiLoading ? (
-              <><div className="spinner" /> Parsing with Gemini...</>
+              <><div className="spinner" /> Analyzing...</>
             ) : (
-              <><Sparkles size={18} /> Parse with AI</>
+              <><Sparkles size={20} style={{ marginRight: 8 }} /> Extract Ingredients</>
             )}
           </button>
-
-          {/* Parsed Items */}
-          {parsedItems.length > 0 && (
-            <>
-              <div className="section-label">
-                <Sparkles size={12} style={{ color: 'var(--green-400)' }} />
-                AI found {parsedItems.length} items
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-                {parsedItems.map((item, idx) => (
-                  <ParsedRow
-                    key={idx}
-                    item={item}
-                    onUpdate={(f, v) => updateParsed(idx, f, v)}
-                    onRemove={() => setParsedItems(p => p.filter((_, i) => i !== idx))}
-                  />
-                ))}
-              </div>
-              <button className="btn btn-primary btn-full" onClick={handleAddParsed}>
-                <Plus size={16} /> Add All {parsedItems.length} Items
-              </button>
-            </>
-          )}
         </div>
       )}
-    </div>
-  );
-}
 
-function ParsedRow({ item, onUpdate, onRemove }) {
-  const emoji = CATEGORIES.find(c => c.id === item.category)?.emoji || '🍽️';
-  return (
-    <div style={{
-      background: 'var(--glass-2)', border: '1px solid var(--glass-border)',
-      borderRadius: 'var(--r-md)', padding: '12px 14px',
-      display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap',
-    }}>
-      <span style={{ fontSize: 20, flexShrink: 0 }}>{emoji}</span>
-      <input className="form-input" style={{ flex: '2 1 100px', padding: '8px 12px', fontSize: 13 }}
-        value={item.name} onChange={e => onUpdate('name', e.target.value)} />
-      <input className="form-input" type="number" style={{ width: 64, padding: '8px 10px', fontSize: 13 }}
-        value={item.quantity} onChange={e => onUpdate('quantity', parseFloat(e.target.value) || 1)} />
-      <select className="form-select" style={{ width: 88, padding: '8px 10px', fontSize: 12 }}
-        value={item.unit} onChange={e => onUpdate('unit', e.target.value)}>
-        {['piece','kg','grams','litre','ml','bunch','packet','bottle'].map(u => <option key={u} value={u}>{u}</option>)}
-      </select>
-      <input className="form-input" type="date" style={{ width: 136, padding: '8px 10px', fontSize: 12 }}
-        value={item.expiryDate} onChange={e => onUpdate('expiryDate', e.target.value)} />
-      <button className="btn-icon" onClick={onRemove}>
-        <X size={14} style={{ color: 'var(--urgent)' }} />
-      </button>
+      {/* Parsed Items Results */}
+      {tab === 'bulk' && parsedItems.length > 0 && (
+        <div className="glass-card slide-up" style={{ padding: 24, marginTop: 24 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: 'var(--green-400)' }}>✓</span>
+            Found {parsedItems.length} items
+          </h3>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+            {parsedItems.map((item, idx) => (
+              <div key={idx} style={{
+                background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)',
+                borderRadius: 'var(--r-md)', padding: 12,
+                display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', gap: 12, alignItems: 'center'
+              }}>
+                <span style={{ fontSize: 24 }}>{CATEGORIES.find(c => c.id === item.category)?.emoji || '🍽️'}</span>
+                
+                <input className="form-input" style={{ padding: '8px 12px', fontSize: 14, border: 'none', background: 'transparent' }}
+                  value={item.name} onChange={e => updateParsed(idx, 'name', e.target.value)} />
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input className="form-input" type="number" style={{ width: 64, padding: '8px 10px', fontSize: 14 }}
+                    value={item.quantity} onChange={e => updateParsed(idx, 'quantity', parseFloat(e.target.value) || 1)} />
+                  <span style={{ color: 'var(--text-400)', fontSize: 12 }}>{item.unit}</span>
+                </div>
+
+                <button className="btn-icon" onClick={() => setParsedItems(p => p.filter((_, i) => i !== idx))}>
+                  <X size={16} color="var(--urgent)" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button className="btn btn-primary btn-full" style={{ height: 56, fontSize: 16 }} onClick={handleAddParsed}>
+            <Plus size={20} style={{ marginRight: 8 }} /> Confirm & Add All
+          </button>
+        </div>
+      )}
     </div>
   );
 }

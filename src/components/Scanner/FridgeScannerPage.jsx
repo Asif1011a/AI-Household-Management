@@ -33,7 +33,18 @@ export default function FridgeScannerPage({ onRefresh, addToast }) {
     setError('');
     try {
       const items = await scanFridgeImage(settings.geminiApiKey, imageFile, todayISO());
-      setScannedItems(Array.isArray(items) ? items : []);
+      
+      let parsedItems = Array.isArray(items) ? items : [];
+      
+      // Sort items by freshness: SPOILED first, then SEMI-FRESH, then FRESH, then N/A
+      const freshnessRank = { 'SPOILED': 0, 'SEMI-FRESH': 1, 'FRESH': 2, 'N/A': 3 };
+      parsedItems.sort((a, b) => {
+        const rankA = freshnessRank[a.freshness] ?? 4;
+        const rankB = freshnessRank[b.freshness] ?? 4;
+        return rankA - rankB;
+      });
+
+      setScannedItems(parsedItems);
     } catch (e) {
       setError('Scan failed: ' + e.message);
     }
@@ -305,11 +316,33 @@ function ScannedItemRow({ item, emoji, onToggle }) {
       onClick={onToggle}
     >
       <span style={{ fontSize: 22 }}>{emoji}</span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-200)' }}>{item.name}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-500)' }}>
-          {item.quantity} {item.unit} · {item.storageLocation} · expires {item.expiryDate}
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-100)' }}>
+          {item.name}
+        </span>
+        <span style={{ fontSize: 13, color: 'var(--text-400)' }}>
+          {item.quantity} {item.unit} • {item.estimatedShelfLifeDays} days left
+        </span>
+        {item.freshness && item.freshness !== 'N/A' && (
+          <div style={{ 
+            display: 'inline-block',
+            marginTop: 6,
+            padding: '2px 8px',
+            borderRadius: '4px',
+            fontSize: 11,
+            fontWeight: 700,
+            background: item.freshness === 'SPOILED' ? 'var(--urgent-bg)' : item.freshness === 'SEMI-FRESH' ? 'var(--warning-bg)' : 'var(--fresh-bg)',
+            color: item.freshness === 'SPOILED' ? 'var(--urgent)' : item.freshness === 'SEMI-FRESH' ? 'var(--warning)' : 'var(--fresh)'
+          }}>
+            {item.freshness === 'SPOILED' ? '❌ ' : item.freshness === 'SEMI-FRESH' ? '⚠️ ' : '✅ '}
+            {item.freshness}
+          </div>
+        )}
+        {item.freshnessReason && (
+          <span style={{ fontSize: 12, color: 'var(--text-500)', marginTop: 4, lineHeight: 1.3 }}>
+            {item.freshnessReason}
+          </span>
+        )}
       </div>
       <div style={{
         width: 24, height: 24, borderRadius: 6,
@@ -317,6 +350,7 @@ function ScannedItemRow({ item, emoji, onToggle }) {
         border: `1px solid ${item._skip ? 'var(--glass-border)' : 'var(--fresh-border)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
+        marginLeft: 'auto'
       }}>
         {!item._skip && <Check size={14} color="var(--fresh)" />}
       </div>

@@ -94,6 +94,7 @@ export async function scanFridgeImage(apiKey, imageFile, today) {
 Identify ALL visible food items and grocery products. For each item:
 - Estimate quantity and unit
 - Categorize it (vegetables, fruits, dairy, grains, protein, spices, beverages, packaged, leftovers, snacks)
+- Analyze visual freshness specifically for fresh produce, dairy, and leftovers.
 - Suggest best storage location (fridge, freezer, pantry, counter)
 - Estimate shelf life in days from today (${today}) considering Indian climate
 
@@ -108,10 +109,13 @@ Return a JSON array:
     "expiryDate": "YYYY-MM-DD",
     "purchaseDate": "${today}",
     "estimatedShelfLifeDays": 3,
-    "confidence": "high"
+    "confidence": "high",
+    "freshness": "SEMI-FRESH", 
+    "freshnessReason": "Leaves are slightly wilted but still usable"
   }
 ]
 
+For "freshness", use strictly one of these values: "FRESH", "SEMI-FRESH", "SPOILED", or "N/A" (for packaged/dry goods).
 Include ALL visible items. Return ONLY a valid JSON array.`;
 
   const text = await callGemini(apiKey, [

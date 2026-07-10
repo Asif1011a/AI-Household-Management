@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import BottomNav from './components/Layout/BottomNav';
 import TopBar from './components/Layout/TopBar';
+import Sidebar from './components/Layout/Sidebar';
 import DashboardPage from './components/Dashboard/DashboardPage';
 import PantryPage from './components/Pantry/PantryPage';
 import AddItemPage from './components/AddItem/AddItemPage';
@@ -75,27 +76,36 @@ function AppShell() {
         <LoginPage onLogin={handleLogin} />
       ) : (
         <>
-          {/* Top Bar */}
-          <TopBar urgentCount={urgentCount} />
+          {/* Desktop Sidebar (hidden on mobile) */}
+          <div className="hide-on-mobile" style={{ height: '100%' }}>
+            <Sidebar urgentCount={urgentCount} />
+          </div>
 
-      {/* Page Content */}
-      <div className="page-wrapper">
-        <div className="page-inner">
-          <Routes location={location}>
-            <Route path="/" element={<DashboardPage inventory={inventory} onRefresh={refresh} addToast={addToast} />} />
-            <Route path="/pantry" element={<PantryPage inventory={inventory} onRefresh={refresh} addToast={addToast} />} />
-            <Route path="/add" element={<AddItemPage onRefresh={refresh} addToast={addToast} />} />
-            <Route path="/scan" element={<FridgeScannerPage onRefresh={refresh} addToast={addToast} />} />
-            <Route path="/recipes" element={<RecipesPage inventory={inventory} addToast={addToast} />} />
-            <Route path="/analytics" element={<AnalyticsPage inventory={inventory} />} />
-            <Route path="/health" element={<HealthInsightsPage inventory={inventory} onRefresh={refresh} />} />
-            <Route path="/settings" element={<SettingsPage onRefresh={refresh} addToast={addToast} />} />
-          </Routes>
-        </div>
-      </div>
+          <div className="main-content-column">
+            {/* Top Bar (only shows logo on mobile, actions global) */}
+            <TopBar urgentCount={urgentCount} />
 
-          {/* Bottom Navigation */}
-          <BottomNav urgentCount={urgentCount} />
+            {/* Page Content */}
+            <div className="page-wrapper">
+              <div className="page-inner">
+                <Routes location={location}>
+                  <Route path="/" element={<DashboardPage inventory={inventory} onRefresh={refresh} addToast={addToast} />} />
+                  <Route path="/pantry" element={<PantryPage inventory={inventory} onRefresh={refresh} addToast={addToast} />} />
+                  <Route path="/add" element={<AddItemPage onRefresh={refresh} addToast={addToast} />} />
+                  <Route path="/scan" element={<FridgeScannerPage onRefresh={refresh} addToast={addToast} />} />
+                  <Route path="/recipes" element={<RecipesPage inventory={inventory} addToast={addToast} />} />
+                  <Route path="/analytics" element={<AnalyticsPage inventory={inventory} />} />
+                  <Route path="/health" element={<HealthInsightsPage inventory={inventory} onRefresh={refresh} />} />
+                  <Route path="/settings" element={<SettingsPage onRefresh={refresh} addToast={addToast} />} />
+                </Routes>
+              </div>
+            </div>
+
+            {/* Bottom Navigation (hidden on desktop) */}
+            <div className="hide-on-desktop">
+              <BottomNav urgentCount={urgentCount} />
+            </div>
+          </div>
         </>
       )}
 

@@ -9,7 +9,7 @@ export default function TopBar({ urgentCount }) {
   return (
     <div className="topbar">
       <div className="topbar-inner">
-        <div className="topbar-logo">
+        <div className="topbar-logo hide-on-desktop">
           <div className="topbar-logo-mark">🌿</div>
           <span className="topbar-title">GreenBite</span>
         </div>

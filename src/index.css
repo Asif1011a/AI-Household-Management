@@ -419,14 +419,30 @@ img { display: block; max-width: 100%; }
 /* Card hover effect */
 .glass-card-hover {
   cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+.glass-card-hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0);
+  transition: box-shadow 0.4s ease;
+  pointer-events: none;
 }
 .glass-card-hover:hover {
-  border-color: var(--glass-border-bright);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-float);
+  border-color: rgba(16, 185, 129, 0.5); /* Electric emerald border */
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.15);
+  background: var(--glass-3);
+}
+.glass-card-hover:hover::after {
+  box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.1);
 }
 .glass-card-hover:active {
-  transform: translateY(0) scale(0.99);
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -654,12 +670,14 @@ img { display: block; max-width: 100%; }
   background: linear-gradient(135deg, var(--green-500) 0%, var(--green-400) 100%);
   color: #000;
   font-weight: 700;
-  box-shadow: 0 0 24px rgba(16, 185, 129, 0.3), 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(0,0,0,0.5);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 0 32px rgba(16, 185, 129, 0.5), 0 8px 24px rgba(0,0,0,0.6);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.6), 0 8px 25px rgba(0,0,0,0.7);
+  background: linear-gradient(135deg, var(--green-400) 0%, var(--green-300) 100%);
 }
 
 /* Glass */
@@ -669,13 +687,15 @@ img { display: block; max-width: 100%; }
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .btn-glass:hover {
-  background: var(--glass-4);
-  border-color: var(--glass-border-bright);
-  color: var(--text-100);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 20px rgba(255,255,255,0.1);
 }
 
 /* Danger */
@@ -702,9 +722,11 @@ img { display: block; max-width: 100%; }
 }
 
 .btn-icon:hover {
-  background: var(--glass-3);
-  color: var(--text-100);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: scale(1.15) rotate(5deg);
+  box-shadow: 0 0 15px rgba(255,255,255,0.15);
 }
 
 .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: var(--r-sm); }

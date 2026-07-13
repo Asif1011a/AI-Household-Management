@@ -5,6 +5,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
+  color-scheme: dark;
   /* ── Brand Colors (Obsidian & Azure) ───────────────────────────────────── */
   --primary-400: #38bdf8; /* Electric Sky Blue */
   --primary-500: #0284c7;

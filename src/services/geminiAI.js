@@ -22,21 +22,32 @@ function headers() {
 
 function extractJSON(text) {
   try {
-    // Clean up any markdown that might have leaked through
-    let clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    return JSON.parse(clean);
+    // Step 1: Strip markdown code fences
+    let clean = text
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim();
+
+    // Step 2: Find the outermost JSON array or object
+    const startArr = clean.indexOf('[');
+    const startObj = clean.indexOf('{');
+    let jsonStr = clean;
+
+    if (startArr !== -1 && (startObj === -1 || startArr < startObj)) {
+      const endArr = clean.lastIndexOf(']');
+      jsonStr = clean.slice(startArr, endArr + 1);
+    } else if (startObj !== -1) {
+      const endObj = clean.lastIndexOf('}');
+      jsonStr = clean.slice(startObj, endObj + 1);
+    }
+
+    // Step 3: Remove trailing commas before } or ] (invalid JSON)
+    jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+
+    return JSON.parse(jsonStr);
   } catch (e) {
-    // Fallback if the clean fails
-    const startObj = text.indexOf('{'), endObj = text.lastIndexOf('}');
-    const startArr = text.indexOf('['), endArr = text.lastIndexOf(']');
-    
-    if (startArr !== -1 && endArr !== -1 && (startObj === -1 || startArr < startObj)) {
-      return JSON.parse(text.slice(startArr, endArr + 1));
-    }
-    if (startObj !== -1 && endObj !== -1) {
-      return JSON.parse(text.slice(startObj, endObj + 1));
-    }
-    throw new Error('Failed to parse AI response as JSON');
+    console.error('[extractJSON] Failed to parse:', text?.slice(0, 300));
+    throw new Error('Failed to parse AI response as JSON. Please try again.');
   }
 }
 

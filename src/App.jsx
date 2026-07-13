@@ -77,7 +77,7 @@ function AppShell() {
       ) : (
         <>
           {/* Desktop Sidebar (hidden on mobile) */}
-          <div className="hide-on-mobile" style={{ height: '100%' }}>
+          <div className="hide-on-mobile" style={{ height: '100%', flexShrink: 0 }}>
             <Sidebar urgentCount={urgentCount} />
           </div>
 

@@ -27,6 +27,8 @@ export default function LoginPage({ onLogin }) {
   return (
     <div className="fade-in" style={{
       minHeight: '100vh',
+      width: '100%',
+      flex: 1,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
